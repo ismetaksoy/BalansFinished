@@ -26,17 +26,22 @@ periode = {
 
 def LoadData():
     # Maak connectie met de database en geef de locaties aan van de input bestanden
-    conn = sqlite3.connect('DatabaseVB.db')
+    head = ['RekNr', 'Datum', 'Symbool', 'ISIN', 'Type optie', 'Expiratie',
+       'Strike', 'Valuta', 'Slotkoers', 'Aantal', 'Valutakoers',
+       'Contractgrootte', 'Waarde EUR', 'Waarde Orig Valuta', 'Aankoopwaarde',
+       'Type instrument', 'Binckcode', 'Titel instrument', 'Unnamed: 18']
+
     posdirectory = './Input/Posrecon'
     tradedirectory = './Input/Traderecon'
-    
+    conn = sqlite3.connect('DatabaseVB.db')
     # Loop over de input bestanden en laad ze in de database
     for file in os.listdir(posdirectory):
-        df = pd.read_csv(posdirectory+'/'+file, parse_dates = True)
-        df.to_sql('Posrecon', if_exists = "replace", con = conn)
-    
+        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = head, delimiter = ';', parse_dates = True)
+        df.to_sql('Posrecon', if_exists = "append", con = conn)
+        os.rename(posdirectory+'/'+file , './Archive/'+file)
+
     for file in os.listdir(tradedirectory):
-        df = pd.read_csv(tradedirectory+'/'+file, parse_dates = True)
+        df = pd.read_csv(tradedirectory+'/'+file, names = head, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "replace", con = conn)
 
 
