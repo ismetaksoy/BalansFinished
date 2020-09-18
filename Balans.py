@@ -43,7 +43,7 @@ def LoadData():
     for file in os.listdir(tradedirectory):
         df = pd.read_csv(tradedirectory+'/'+file, names = head, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "replace", con = conn)
-
+        os.rename(posdirectory+'/'+file , './Archive/'+file)
 
 def GetRendement(x):
     #conn = sqlite3.connect('DatabaseVB.db')
