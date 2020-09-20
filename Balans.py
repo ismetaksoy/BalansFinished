@@ -163,7 +163,7 @@ def getPerf(data, kwartaals, bench):
 def Graph(data, benchmark, ticker, period):
     sorted_periode = sorted(period)
     benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / aexdf['Start waarde']).round(5)
+    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 
     df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
@@ -227,7 +227,7 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
 
 def ZoekGraph(data, benchmark, ticker, start_date, end_date):
     benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / aexdf['Start waarde']).round(5)
+    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
 
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 
