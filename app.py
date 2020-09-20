@@ -39,7 +39,6 @@ if st.sidebar.button('Zoeken op specifieke datum'):
 	ZoekGraph(df,getBenchmarkData(benchmark_keuze), benchmark_keuze, start_d, end_d)
 
 
-
 if st.sidebar.button('Toon Data'):
 	st.markdown("## Portefeuille Ontwikkeling")
 	df = GetRendement(reknr)
