@@ -6,7 +6,7 @@ import datetime
 import yfinance as yf
 from Balans import *
 
-st.sidebar.markdown("# Vermogensbeheer")
+st.sidebar.markdown("# Vermogensbeheer Dashboard")
 
 if st.sidebar.button('Lees Input Bestanden'):
 	LoadData()
