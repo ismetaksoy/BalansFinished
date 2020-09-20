@@ -26,24 +26,40 @@ periode = {
 
 def LoadData():
     # Maak connectie met de database en geef de locaties aan van de input bestanden
-    head = ['RekNr', 'Datum', 'Symbool', 'ISIN', 'Type optie', 'Expiratie',
+    posreconhead = ['RekNr', 'Datum', 'Symbool', 'ISIN', 'Type optie', 'Expiratie',
        'Strike', 'Valuta', 'Slotkoers', 'Aantal', 'Valutakoers',
        'Contractgrootte', 'Waarde EUR', 'Waarde Orig Valuta', 'Aankoopwaarde',
        'Type instrument', 'Binckcode', 'Titel instrument', 'Unnamed: 18']
 
+    tradereconhead = ['RekNr', 'Unnamed: 1', 'Valuta', 'Datum', 'Tijdstip', 'Unnamed: 5',
+       'Type', 'Unnamed: 7', 'Unnamed: 8', 'Aantal', 'Per aandeel', 'Bedrag',
+       'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15',
+       'Unnamed: 16', 'ISIN', 'Symbool', 'Unnamed: 19', 'Unnamed: 20',
+       'Unnamed: 21', 'Unnamed: 22', 'Omschrijving', 'Unnamed: 24',
+       'Unnamed: 25', 'Unnamed: 26', 'Unnamed: 27', 'Unnamed: 28',
+       'Unnamed: 29', 'Omschrijving overzicht', 'Unnamed: 31', 'Unnamed: 32',
+       'Unnamed: 33', 'Unnamed: 34', 'Unnamed: 35', 'Unnamed: 36', 'Unnamed: 37', 'Unnamed: 38'
+                 , 'Unnamed: 39', 'Unnamed: 40', 'Unnamed: 41']
+    
     posdirectory = './Input/Posrecon'
     tradedirectory = './Input/Traderecon'
     conn = sqlite3.connect('DatabaseVB.db')
     # Loop over de input bestanden en laad ze in de database
     for file in os.listdir(posdirectory):
-        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = head, delimiter = ';', parse_dates = True)
+        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = posreconhead, delimiter = ';', parse_dates = True)
         df.to_sql('Posrecon', if_exists = "append", con = conn)
         os.rename(posdirectory+'/'+file , './Archive/'+file)
 
     for file in os.listdir(tradedirectory):
+<<<<<<< HEAD
         df = pd.read_csv(tradedirectory+'/'+file, names = head, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "replace", con = conn)
         os.rename(posdirectory+'/'+file , './Archive/'+file)
+=======
+        df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', parse_dates = True)
+        df.to_sql('Traderecon', if_exists = "append", con = conn)
+        os.rename(tradedirectory+'/'+file , './Archive/'+file)
+>>>>>>> 9abf2aa3bc9edf1170fa4e2eab7d4c7a5dd1b8fd
 
 def GetRendement(x):
     #conn = sqlite3.connect('DatabaseVB.db')
