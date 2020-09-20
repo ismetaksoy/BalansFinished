@@ -51,15 +51,14 @@ def LoadData():
         os.rename(posdirectory+'/'+file , './Archive/'+file)
 
     for file in os.listdir(tradedirectory):
-<<<<<<< HEAD
         df = pd.read_csv(tradedirectory+'/'+file, names = head, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "replace", con = conn)
         os.rename(posdirectory+'/'+file , './Archive/'+file)
-=======
+
         df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "append", con = conn)
         os.rename(tradedirectory+'/'+file , './Archive/'+file)
->>>>>>> 9abf2aa3bc9edf1170fa4e2eab7d4c7a5dd1b8fd
+
 
 def GetRendement(x):
     #conn = sqlite3.connect('DatabaseVB.db')
@@ -163,8 +162,8 @@ def getPerf(data, kwartaals, bench):
 #Grafiek van Portfolio en Benchmark
 def Graph(data, benchmark, ticker, period):
     sorted_periode = sorted(period)
-    benchmark['Benchmark Dag Rendement'] = benchmark[f'{ticker} Eind Waarde'].pct_change(4)
-
+    benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
+    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / aexdf['Start waarde']).round(5)
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 
     df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
@@ -227,7 +226,8 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
 
 
 def ZoekGraph(data, benchmark, ticker, start_date, end_date):
-    benchmark['Benchmark Dag Rendement'] = benchmark[f'{ticker} Eind Waarde'].pct_change(4)
+    benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
+    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / aexdf['Start waarde']).round(5)
 
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 
