@@ -93,7 +93,7 @@ def GetRendement(x):
     df_final = df_posrecon.merge(df_tot_tr, on='Datum', how='left')
     
     ### VOEG DE OVERBOEKINGEN AAN DE DATAFRAME MET DE WAARDES PORTEFEUILLE
-    traderecon_columns = ['Onttrekkingen','Stortingen', 'Lichtingen','Deponeringen']
+    traderecon_columns = ['Onttrekkingen', 'Stortingen', 'Lichtingen', 'Deponeringen']
     df_final[traderecon_columns] = df_final[traderecon_columns].fillna(0.0)
     
     ### MAAK KOLOM ACTUELE RENDEMENT EN BEREKEN RENDEMENT VAN WAARDE PORTEFEUILLE EN ONTTREKKINGEN / STORTINGEN
