@@ -51,10 +51,6 @@ def LoadData():
         os.rename(posdirectory+'/'+file , './Archive/'+file)
 
     for file in os.listdir(tradedirectory):
-        df = pd.read_csv(tradedirectory+'/'+file, names = head, delimiter = ';', parse_dates = True)
-        df.to_sql('Traderecon', if_exists = "replace", con = conn)
-        os.rename(posdirectory+'/'+file , './Archive/'+file)
-
         df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "append", con = conn)
         os.rename(tradedirectory+'/'+file , './Archive/'+file)
@@ -63,16 +59,9 @@ def LoadData():
 def GetRendement(x):
     #conn = sqlite3.connect('DatabaseVB.db')
     engine = create_engine('sqlite:///DatabaseVB.db')
-    ### Lees POSRECON in en sla deze op in de database
-    #df = pd.read_csv('Input/Posrecon.csv', parse_dates = True)#
-    #df.to_sql('BalansDB', if_exists = "replace", con = conn)
     
     df_posrecon = pd.read_sql(f'''SELECT "Datum", ROUND(sum("Waarde EUR"),2) as "Eind Waarde" 
                       FROM "Posrecon" where "RekNr" = "{x}" group by "Datum" order by "Datum"''', con = engine).set_index('Datum')
-
-    ### Lees TRADERECON in en sla deze op in de database
-    # df_traderecon = pd.read_csv('Input/Traderecon.csv', parse_dates = True, )#decimal = ','
-    # df_traderecon.to_sql('BalansTraderecon', if_exists = 'replace' , con = conn)
     
     ### LEES UIT DE DATABASE DE SOM VAN DE ONTTREKKINGEN / OVERBOEKINGEN / LICHTINGEN / STORTINGEN VOOR REKNR X
     df_onttrekking = pd.read_sql(f''' Select Datum, sum("Aantal") as "Onttrekkingen" from Traderecon
