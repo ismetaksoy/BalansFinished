@@ -46,12 +46,12 @@ def LoadData():
     conn = sqlite3.connect('DatabaseVB.db')
     # Loop over de input bestanden en laad ze in de database
     for file in os.listdir(posdirectory):
-        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = posreconhead, delimiter = ';', decimal = ',', parse_dates = True)
+        df = pd.read_csv(posdirectory+'/'+file, names = posreconhead, delimiter = ';', decimal = ',', parse_dates = True)
         df.to_sql('Posrecon', if_exists = "append", con = conn)
         os.rename(posdirectory+'/'+file , './Archive/'+file)
 
     for file in os.listdir(tradedirectory):
-        df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', decimal = ',', parse_dates = True)
+        df = pd.read_csv(tradedirectory+'/'+file, names = tradereconhead, delimiter = ';', decimal = ',', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "append", con = conn)
         os.rename(tradedirectory+'/'+file , './Archive/'+file)
 
