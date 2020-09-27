@@ -38,20 +38,20 @@ def LoadData():
        'Unnamed: 21', 'Unnamed: 22', 'Omschrijving', 'Unnamed: 24',
        'Unnamed: 25', 'Unnamed: 26', 'Unnamed: 27', 'Unnamed: 28',
        'Unnamed: 29', 'Omschrijving overzicht', 'Unnamed: 31', 'Unnamed: 32',
-       'Unnamed: 33', 'Unnamed: 34', 'Unnamed: 35', 'Unnamed: 36', 'Unnamed: 37', 'Unnamed: 38'
-                 , 'Unnamed: 39', 'Unnamed: 40', 'Unnamed: 41']
+       'Unnamed: 33', 'Unnamed: 34', 'Unnamed: 35', 'Unnamed: 36', 'Unnamed: 37', 'Unnamed: 38',
+        'Unnamed: 39', 'Unnamed: 40', 'Unnamed: 41']
     
     posdirectory = './Input/Posrecon'
     tradedirectory = './Input/Traderecon'
     conn = sqlite3.connect('DatabaseVB.db')
     # Loop over de input bestanden en laad ze in de database
     for file in os.listdir(posdirectory):
-        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = posreconhead, delimiter = ';', parse_dates = True)
+        df = pd.read_csv(posdirectory+'/'+file, header = 0, names = posreconhead, delimiter = ';', decimal = ',', parse_dates = True)
         df.to_sql('Posrecon', if_exists = "append", con = conn)
         os.rename(posdirectory+'/'+file , './Archive/'+file)
 
     for file in os.listdir(tradedirectory):
-        df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', parse_dates = True)
+        df = pd.read_csv(tradedirectory+'/'+file, header = 0, names = tradereconhead, delimiter = ';', decimal = ',', parse_dates = True)
         df.to_sql('Traderecon', if_exists = "append", con = conn)
         os.rename(tradedirectory+'/'+file , './Archive/'+file)
 
@@ -60,12 +60,12 @@ def GetRendement(x):
     #conn = sqlite3.connect('DatabaseVB.db')
     engine = create_engine('sqlite:///DatabaseVB.db')
     
-    df_posrecon = pd.read_sql(f'''SELECT "Datum", ROUND(sum("Waarde EUR"),2) as "Eind Waarde" 
-                      FROM "Posrecon" where "RekNr" = "{x}" group by "Datum" order by "Datum"''', con = engine).set_index('Datum')
+    df_posrecon = pd.read_sql(f''' SELECT "Datum", round(sum("Waarde EUR"),2) as "Eind Waarde" 
+                      FROM "Posrecon" where "RekNr" = "{x}" group by "Datum" order by "Datum" ''', con = engine).set_index('Datum')
     
     ### LEES UIT DE DATABASE DE SOM VAN DE ONTTREKKINGEN / OVERBOEKINGEN / LICHTINGEN / STORTINGEN VOOR REKNR X
     df_onttrekking = pd.read_sql(f''' Select Datum, sum("Aantal") as "Onttrekkingen" from Traderecon
-                       where RekNr = "{x}" and "Unnamed: 34" = 5025 OR "Unnamed: 34" = 5000 group by "Datum" ''', con = engine).set_index('Datum')
+                       where RekNr = "{x}" and ("Unnamed: 34" = 5025 OR "Unnamed: 34" = 5000) group by "Datum" ''', con = engine).set_index('Datum')
 
     df_stortingen = pd.read_sql(f''' Select Datum, sum("Aantal") as "Stortingen" from Traderecon
                        where RekNr = "{x}"  and "Unnamed: 34" = 5026 group by "Datum" ''', con = engine).set_index('Datum')
@@ -119,15 +119,19 @@ def GetOverview(data, kwartaals):
 def getBenchmarkData(bench):
     conn = sqlite3.connect('DatabaseVB.db')
     engine = create_engine('sqlite:///DatabaseVB.db')
+    
     ticker = yf.Ticker(bench)
-
-    df_benchmark = ticker.history(period = 'max')
+    df_benchmark = ticker.history(period = '10y')
+    
     df_benchmark.reset_index(inplace = True)
-    df_benchmark.rename(columns = {'Date':'Datum', 'Close': f'{bench} Eind Waarde'}, inplace = True)
+    df_benchmark.rename(columns = {'Date':'Datum', 'Close': 'Eind Waarde'}, inplace = True)
+    df_benchmark['Start Waarde'] = df_benchmark['Eind Waarde'].shift(1)
+    df_benchmark['Benchmark Dag Rendement'] = ((df_benchmark['Eind Waarde'] - df_benchmark['Start Waarde']) / df_benchmark['Start Waarde']).round(5)
+
     df_benchmark.to_sql(f'{bench}', if_exists = 'replace', con = conn)
 
     df = pd.read_sql(f'''
-        SELECT substr(Datum, 1, 10) as "Datum", "{bench} Eind Waarde" FROM "{bench}"
+        SELECT substr(Datum, 1, 10) as "Datum", "Start Waarde" FROM "{bench}"
     ''', con = engine).set_index("Datum")
     return df
 
@@ -151,8 +155,10 @@ def getPerf(data, kwartaals, bench):
 #Grafiek van Portfolio en Benchmark
 def Graph(data, benchmark, ticker, period):
     sorted_periode = sorted(period)
+
     benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
     benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
+    
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 
     df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
@@ -183,6 +189,7 @@ def Graph(data, benchmark, ticker, period):
 # Handmatig kiezen van start- en einddatum voor de portefeuille ontwikkeling
 @st.cache
 def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
+    
     sd = start_datum
     ed = eind_datum
 
@@ -192,10 +199,11 @@ def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
     portf_deponeringen = df.loc[sd:ed,['Deponeringen']].sum()[0]
     portf_onttrekkingen = df.loc[sd:ed,['Onttrekkingen']].sum()[0]
     portf_lichtingen = df.loc[sd:ed,['Lichtingen']].sum()[0]
-    portf_eindwaarde = df.loc[ed,['Eind Waarde']][0]
+    portf_eindwaarde = df.loc[ed,['Eind Waarde']][0].format()
 
     overview = [portf_startwaarde, portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen, 
                portf_eindwaarde]
+
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde'])
     df_final['Abs Rendement'] = df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen']
     df_final['Rendement'] = (df_final['Eind Waarde'] - df_final['Start Waarde']) / df_final['Start Waarde']
@@ -215,8 +223,8 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
 
 
 def ZoekGraph(data, benchmark, ticker, start_date, end_date):
-    benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
+    # benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
+    # benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
 
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
 

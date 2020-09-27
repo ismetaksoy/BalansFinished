@@ -28,16 +28,18 @@ bench_iusq = getBenchmarkData("IUSQ.DE")
 
 if st.sidebar.button('Zoeken op specifieke datum'):
 	df = GetRendement(reknr)
-	start_d = start_date.strftime("%Y-%m-%d") # Verander datum terug naar Y-m-d
-	end_d = end_date.strftime("%Y-%m-%d")
+	start_d = start_date.strftime("%d-%m-%Y") # Verander datum terug naar Y-m-d
+	end_d = end_date.strftime("%d-%m-%Y")
+
 	st.markdown("## Portefeuille Ontwikkeling")
 	st.markdown(f"#### From {start_d} to {end_d}")
 	st.table(ZoekPortfOntwikkeling(df, start_d, end_d))
-
+	st.dataframe(df)
 	st.markdown(f"## Benchmark Ontwikkeling {benchmark_keuze}")
 	st.table(ZoekBenchmarkOntwikkeling(getBenchmarkData(benchmark_keuze), start_d, end_d))
 	ZoekGraph(df, getBenchmarkData(benchmark_keuze), benchmark_keuze, start_d, end_d)
-
+	
+	
 
 if st.sidebar.button('Toon Data'):
 	st.markdown("## Portefeuille Ontwikkeling")
@@ -47,5 +49,3 @@ if st.sidebar.button('Toon Data'):
 	full_bench_df = getBenchmarkData(benchmark_keuze)
 	df_bench_ont = st.table(getPerf(full_bench_df, periode_keuze, benchmark_keuze))
 	Comparison_graph = Graph(df, getBenchmarkData(benchmark_keuze), benchmark_keuze, periode_keuze)
-
-

@@ -1,4 +1,4 @@
-streamlit
+streamlit==0.63
 SQLAlchemy
 datetime
 yfinance
