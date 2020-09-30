@@ -65,17 +65,33 @@ def GetRendement(x):
     
     ### LEES UIT DE DATABASE DE SOM VAN DE ONTTREKKINGEN / OVERBOEKINGEN / LICHTINGEN / STORTINGEN VOOR REKNR X
     df_onttrekking = pd.read_sql(f''' Select Datum, sum("Aantal") as "Onttrekkingen" from Traderecon
-                       where RekNr = "{x}" and ("Unnamed: 34" = 5025 OR "Unnamed: 34" = 5000) group by "Datum" ''', con = engine).set_index('Datum')
+                       where "RekNr" = "{x}" and ("Unnamed: 34" = 5025 OR "Unnamed: 34" = 5000) group by "Datum" ''', con = engine).set_index('Datum')
+    
 
     df_stortingen = pd.read_sql(f''' Select Datum, sum("Aantal") as "Stortingen" from Traderecon
-                       where RekNr = "{x}"  and "Unnamed: 34" = 5026 group by "Datum" ''', con = engine).set_index('Datum')
+                       where "RekNr" = "{x}"  and "Unnamed: 34" = 5026 group by "Datum" ''', con = engine).set_index('Datum')
 
     df_lichtingen = pd.read_sql(f''' Select Datum, sum("Aantal") as "Lichtingen" from Traderecon
-                        where RekNr = "{x}" and "Type" = "L" group by "Datum" ''', con = engine).set_index('Datum')
-
+                        where "RekNr" = "{x}" and "Type" = "L" group by "Datum" ''', con = engine).set_index('Datum')
+    # df_lichtingen = pd.read_sql(f''' 
+    #                     Select "Datum", sum("Unnamed: 31")*1.0 as Lichtingen from traderecon
+    #                     where "RekNr" = {x}
+    #                     and "Type" = "O"
+    #                     and "Unnamed: 31" < 0
+    #                     group by "Datum"
+    #                     order by "Datum";
+    #     ''')
     df_deponeringen = pd.read_sql(f''' Select Datum, sum("Aantal") as "Deponeringen" from Traderecon
-                        where RekNr = "{x}" and "Type" = "D" group by "Datum" ''', con = engine).set_index('Datum')
-    
+                        where "RekNr" = "{x}" and "Type" = "D" group by "Datum" ''', con = engine).set_index('Datum')
+    # Nieuwe formule onttrekkingen
+    # df_deponeringen = pd.read_sql(f''' 
+    #                     Select "Datum", sum("Unnamed: 31") as Deponeringen from traderecon
+    #                     where "RekNr" = {x}
+    #                     and "Type" = "O"
+    #                     and "Unnamed: 31" > 0
+    #                     group by "Datum"
+    #                     order by "Datum";
+    #     ''')
     # Concat de 4 dataframes uit de Traderecon query in 1 dataframe en merge deze met de Posrecon dataframe
     traderecon_data = [df_onttrekking, df_stortingen, df_lichtingen, df_deponeringen]
     df_tot_tr = pd.concat(traderecon_data)
@@ -86,11 +102,16 @@ def GetRendement(x):
     df_final[traderecon_columns] = df_final[traderecon_columns].fillna(0.0)
     
     ### MAAK KOLOM ACTUELE RENDEMENT EN BEREKEN RENDEMENT VAN WAARDE PORTEFEUILLE EN ONTTREKKINGEN / STORTINGEN
+    # start waarde is de eind waarde van de vorige dag
     df_final['Start Waarde'] = df_final["Eind Waarde"].shift(1)
+
     df_final['Dag Rendement'] = ((df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen'] ) ) / (df_final['Start Waarde'] + df_final['Stortingen'] - df_final['Onttrekkingen']).round(5)
-    df_final['Portfolio Cumulatief Rendement'] = (1 + df_final['Dag Rendement']).cumprod()
+
+    df_final['EW Portfolio Cumulatief Rendement'] = (1 + df_final['Dag Rendement']).cumprod()
+
+    df_final['SW Portfolio Cumulatief Rendement'] = df_final['EW Portfolio Cumulatief Rendement'].shift(1)
     #df_final['Eind Waarde'] =  pd.to_numeric(df_final['Eind Waarde'], downcast = 'float')
-    columns = ['Start Waarde','Stortingen','Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Dag Rendement', 'Portfolio Cumulatief Rendement']
+    columns = ['Start Waarde','Stortingen','Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Dag Rendement', 'SW Portfolio Cumulatief Rendement', 'EW Portfolio Cumulatief Rendement']
     
     return df_final[columns]
 
@@ -199,14 +220,17 @@ def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
     portf_deponeringen = df.loc[sd:ed,['Deponeringen']].sum()[0]
     portf_onttrekkingen = df.loc[sd:ed,['Onttrekkingen']].sum()[0]
     portf_lichtingen = df.loc[sd:ed,['Lichtingen']].sum()[0]
-    portf_eindwaarde = df.loc[ed,['Eind Waarde']][0].format()
-
+    portf_eindwaarde = df.loc[ed,['Eind Waarde']][0]
+    startcumrendement = df.loc[sd,['SW Portfolio Cumulatief Rendement']][0]
+    eindcumrendement = df.loc[ed,['EW Portfolio Cumulatief Rendement']][0]
+    
     overview = [portf_startwaarde, portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen, 
                portf_eindwaarde]
 
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde'])
     df_final['Abs Rendement'] = df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen']
     df_final['Rendement'] = (df_final['Eind Waarde'] - df_final['Start Waarde']) / df_final['Start Waarde']
+    df_final['Cumulatief Rendement'] = (eindcumrendement - startcumrendement) / startcumrendement
     
     return df_final
 

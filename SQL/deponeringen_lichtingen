@@ -1,0 +1,18 @@
+select "Datum", sum("Unnamed: 31") as Deponeringen 
+from traderecon
+where "RekNr" = {x}
+and "Type" = "O"
+and "Unnamed: 31" > 0
+group by "Datum"
+order by "Datum";
+
+select "Datum", sum("Unnamed: 31")*-1.0 as Lichtingen 
+from traderecon
+where "RekNr" = {x}
+and "Type" = "O"
+and "Unnamed: 31" < 0
+group by "Datum"
+order by "Datum";
+
+
+select * from traderecon;
