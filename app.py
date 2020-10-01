@@ -26,7 +26,7 @@ bench_spy = getBenchmarkData("SPYY.DE")
 bench_aex = getBenchmarkData("^AEX")
 bench_iusq = getBenchmarkData("IUSQ.DE")
 
-if st.sidebar.button('Zoeken op specifieke datum'):
+if st.sidebar.button('Zoeken op Specifieke Datum'):
 	df = GetRendement(reknr)
 	start_d = start_date.strftime("%d-%m-%Y") # Verander datum terug naar Y-m-d
 	end_d = end_date.strftime("%d-%m-%Y")
