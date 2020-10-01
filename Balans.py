@@ -248,6 +248,7 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
     df['Abs Rendement'] = bench_ew - bench_sw
     
     df['Rendement'] = (bench_ew - bench_sw) / bench_sw
+    
     return df
 
 
