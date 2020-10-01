@@ -37,7 +37,7 @@ if st.sidebar.button('Zoeken op specifieke datum'):
 	st.markdown(f"## Benchmark Ontwikkeling {benchmark_keuze}")
 	st.table(ZoekBenchmarkOntwikkeling(getBenchmarkData(benchmark_keuze), start_d, end_d))
 	ZoekGraph(df, getBenchmarkData(benchmark_keuze), benchmark_keuze, start_d, end_d)
-	
+	st.dataframe(df)
 	
 
 if st.sidebar.button('Toon Data'):
