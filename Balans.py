@@ -131,8 +131,12 @@ def GetOverview(data, kwartaals):
     
     df = pd.DataFrame(overview, 
            columns=["Start Waarde","Stortingen","Deponeringen","Onttrekkingen","Lichtingen","Eind Waarde"], index = kwartaals)
+
+
     df['Abs Rendement'] = df['Eind Waarde'] - df['Start Waarde'] - df['Stortingen'] - df['Deponeringen'] + df['Onttrekkingen'] + df['Lichtingen']
+
     df['Rendement'] = (df['Eind Waarde'] - df['Start Waarde']) / df['Start Waarde']
+
     return df
 
 #Full Benchmark data
@@ -229,7 +233,7 @@ def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
 
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde'])
     df_final['Abs Rendement'] = df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen']
-    df_final['Rendement'] = (df_final['Eind Waarde'] - df_final['Start Waarde']) / df_final['Start Waarde']
+    df_final['Rendement'] = (df_final['Abs Rendement'] / df_final['Start Waarde']) * 100
     df_final['Cumulatief Rendement'] = (eindcumrendement - startcumrendement) / startcumrendement
     
     return df_final
@@ -241,7 +245,9 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
     bench_ew = new_benchmark_df.loc[end_date][0]
     overview = [bench_sw, bench_ew]
     df = pd.DataFrame([overview], columns =['Start Waarde', 'Eind Waarde'])
+    
     df['Abs Rendement'] = bench_ew - bench_sw
+    
     df['Rendement'] = (bench_ew - bench_sw) / bench_sw
     return df
 
