@@ -214,7 +214,6 @@ def Graph(data, benchmark, ticker, period):
 # Handmatig kiezen van start- en einddatum voor de portefeuille ontwikkeling
 @st.cache
 def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
-    
     sd = start_datum
     ed = eind_datum
 
@@ -229,11 +228,11 @@ def ZoekPortfOntwikkeling(data, start_datum, eind_datum):
     eindcumrendement = df.loc[ed,['EW Portfolio Cumulatief Rendement']][0]
     
     overview = [portf_startwaarde, portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen, 
-               portf_eindwaarde]
+               portf_eindwaarde, startcumrendement, eindcumrendement]
 
-    df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde'])
+    df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Start Cum Rend', 'Eind Cum Rend'])
     df_final['Abs Rendement'] = df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen']
-    df_final['Rendement'] = (df_final['Abs Rendement'] / df_final['Start Waarde']) * 100
+    df_final['Rendement'] = (df_final['Abs Rendement'] / df_final['Start Waarde'])
     df_final['Cumulatief Rendement'] = (eindcumrendement - startcumrendement) / startcumrendement
     
     return df_final

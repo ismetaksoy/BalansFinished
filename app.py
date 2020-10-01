@@ -34,10 +34,12 @@ if st.sidebar.button('Zoeken op Specifieke Datum'):
 	st.markdown("## Portefeuille Ontwikkeling")
 	st.markdown(f"#### From {start_d} to {end_d}")
 	st.table(ZoekPortfOntwikkeling(df, start_d, end_d))
+	st.dataframe(df)
+	
 	st.markdown(f"## Benchmark Ontwikkeling {benchmark_keuze}")
 	st.table(ZoekBenchmarkOntwikkeling(getBenchmarkData(benchmark_keuze), start_d, end_d))
 	ZoekGraph(df, getBenchmarkData(benchmark_keuze), benchmark_keuze, start_d, end_d)
-	st.dataframe(df)
+	
 	
 
 if st.sidebar.button('Toon Data'):
