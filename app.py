@@ -11,7 +11,7 @@ st.sidebar.markdown("# Vermogensbeheer-Dashboard Amsterdam")
 if st.sidebar.button('Lees Input Bestanden'):
 	LoadData()
 
-reknr = st.sidebar.text_input("Rekening nummer")
+reknr = st.sidebar.text_input("Rekeningnummer Klant")
 df = GetRendement(reknr)
 
 st.sidebar.markdown("# Periode")
