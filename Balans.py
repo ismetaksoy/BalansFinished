@@ -109,7 +109,7 @@ def GetRendement(x):
     df_final['Start Waarde'] = df_final["Eind Waarde"].shift(1)
 
     df_final['Dag Rendement'] = ((df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen'] ) ) / (df_final['Start Waarde'] + df_final['Stortingen'] - df_final['Onttrekkingen']).round(5)
-
+    df_final['Dag Rendement']= df_final['Dag Rendement'].fillna(0)
     df_final['EW Portfolio Cumulatief Rendement'] = (1 + df_final['Dag Rendement']).cumprod()
 
     df_final['SW Portfolio Cumulatief Rendement'] = df_final['EW Portfolio Cumulatief Rendement'].shift(1)
@@ -146,6 +146,7 @@ def GetOverview(data, kwartaals):
     df['Periode Cum Rendement'] = (df['EW Portf Cum Rend'] - df['SW Portf Cum Rend']) / df['SW Portf Cum Rend']
 
     return df
+
 # Full Benchmark data
 @st.cache(allow_output_mutation=True)
 def getBenchmarkData(bench):
@@ -181,7 +182,8 @@ def getPerf(data, kwartaals, bench):
         df = pd.DataFrame(overview, columns=['Kwartaal','Start Waarde','Eind Waarde'],
                          index = kwart)
         
-        df['Benchmark Performance'] = (df['Eind Waarde'] - df['Start Waarde']) / df['Start Waarde']     
+        df['Benchmark Performance'] = (df['Eind Waarde'] - df['Start Waarde']) / df['Start Waarde']
+        
     return df
 
 # Grafiek van Portfolio en Benchmark
