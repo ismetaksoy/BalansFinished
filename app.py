@@ -7,8 +7,7 @@ import yfinance as yf
 from Balans import *
 
 
-password = st.text_input("Password:", value="", type="password")
-
+password = st.sidebar.text_input("Password:", value="", type="password")
 if password == "Balans":
 	st.sidebar.markdown("# Vermogensbeheer-Dashboard Amsterdam")
 
@@ -52,6 +51,3 @@ if password == "Balans":
 			full_bench_df = getBenchmarkData(benchmark_keuze)
 			st.table(getPerf(full_bench_df, periode_keuze, benchmark_keuze))
 			Graph(df, getBenchmarkData(benchmark_keuze), benchmark_keuze, periode_keuze)
-
-else:
-	st.write('Wrong Password')
