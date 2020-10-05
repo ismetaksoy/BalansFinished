@@ -253,9 +253,6 @@ def ZoekGraph(data, benchmark, ticker, start_date, end_date):
 # Grafiek van Portfolio en Benchmark
 def Graph(data, benchmark, ticker, period):
     sorted_periode = sorted(period)
-
-    # benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    # benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
     
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
     df_port_bench['Benchmark Dag Rendement'].fillna(0)
