@@ -31,8 +31,8 @@ if password == "Balans":
 
 	if st.sidebar.button('Show Data'):
 		df = GetRendement(reknr)
-		start_d = start_date.strftime("%d-%m-%Y") # Verander datum terug naar Y-m-d
-		end_d = end_date.strftime("%d-%m-%Y")
+		start_d = start_date.strftime("%Y-%m-%d") # Verander datum terug naar Y-m-d
+		end_d = end_date.strftime("%Y-%m-%d")
 
 		if not periode_keuze:
 			st.markdown("## Portefeuille Ontwikkeling")

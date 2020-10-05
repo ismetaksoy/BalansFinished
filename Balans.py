@@ -11,8 +11,8 @@ import os
 
 periode = {
     'Q1':
-    {'start':'07-01-2020',
-    'end':'08-01-2020'},
+    {'start':'2020-01-07',
+    'end':'2020-01-14'},
     'Q2':
     {'start':'2020-02-03',
     'end':'2020-02-28'},
@@ -109,7 +109,7 @@ def GetRendement(x):
     df_final['Start Waarde'] = df_final["Eind Waarde"].shift(1)
 
     df_final['Dag Rendement'] = ((df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen'] ) ) / (df_final['Start Waarde'] + df_final['Stortingen'] - df_final['Onttrekkingen']).round(5)
-    df_final['Dag Rendement']= df_final['Dag Rendement'].fillna(0)
+    df_final['Dag Rendement'] = df_final['Dag Rendement'].fillna(0)
     df_final['EW Portfolio Cumulatief Rendement'] = (1 + df_final['Dag Rendement']).cumprod()
 
     df_final['SW Portfolio Cumulatief Rendement'] = df_final['EW Portfolio Cumulatief Rendement'].shift(1)
@@ -160,11 +160,11 @@ def getBenchmarkData(bench):
     df_benchmark.rename(columns = {'Date':'Datum', 'Close': 'Eind Waarde'}, inplace = True)
     df_benchmark['Start Waarde'] = df_benchmark['Eind Waarde'].shift(1)
     df_benchmark['Benchmark Dag Rendement'] = ((df_benchmark['Eind Waarde'] - df_benchmark['Start Waarde']) / df_benchmark['Start Waarde']).round(5)
-
+    df_benchmark['Benchmark Dag Rendement'] = df_benchmark['Benchmark Dag Rendement'].fillna(0)
     df_benchmark.to_sql(f'{bench}', if_exists = 'replace', con = conn)
 
     df = pd.read_sql(f'''
-        SELECT substr(Datum, 1, 10) as "Datum", "Start Waarde" FROM "{bench}"
+        SELECT substr(Datum, 1, 10) as "Datum", "Start Waarde", "Eind Waarde", "Benchmark Dag Rendement" FROM "{bench}"
     ''', con = engine).set_index("Datum")
     return df
 
@@ -185,40 +185,6 @@ def getPerf(data, kwartaals, bench):
         df['Benchmark Performance'] = (df['Eind Waarde'] - df['Start Waarde']) / df['Start Waarde']
         
     return df
-
-# Grafiek van Portfolio en Benchmark
-def Graph(data, benchmark, ticker, period):
-    sorted_periode = sorted(period)
-
-    benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
-    
-    df_port_bench = data.merge(benchmark, on='Datum', how='left')
-
-    df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
-    df_port_bench['Benchmark Cumulatief Rendement'].fillna(method='ffill', inplace = True)
-    df_base = df_port_bench[['Portfolio Cumulatief Rendement', 'Benchmark Cumulatief Rendement']]
-    
-    if len(period) > 1:
-        start = periode[sorted_periode[0]]['start']
-        end = periode[sorted_periode[-1]]['end']
-    else:
-        start = periode[sorted_periode[0]]['start']
-        end = periode[sorted_periode[0]]['end']
-
-    df = df_base.loc[start:end]
-
-    dfn = df.reset_index().melt('Datum')
-    dfn1 = alt.Chart(dfn).mark_line().encode(
-        x = ('Datum:T'),
-        y = ('value:Q'),
-        color='variable:N').properties(
-            height=500,
-            width=750).interactive()
-
-    graph = st.altair_chart(dfn1) 
-
-    return graph
 
 # Handmatig kiezen van start- en einddatum voor de portefeuille ontwikkeling
 # We laden hierbij de dataframe van functie GetRendement in en gaan deze slicen op de start date en end date
@@ -264,16 +230,47 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
 
 
 def ZoekGraph(data, benchmark, ticker, start_date, end_date):
-    # benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
-    # benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
-
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
-
+    df_port_bench['Benchmark Dag Rendement'].fillna(0)
     df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
     df_port_bench['Benchmark Cumulatief Rendement'].fillna(method='ffill', inplace = True)
-    df_base = df_port_bench[['Portfolio Cumulatief Rendement', 'Benchmark Cumulatief Rendement']]
+    df_base = df_port_bench[['EW Portfolio Cumulatief Rendement', 'Benchmark Cumulatief Rendement']]
 
     df = df_base.loc[start_date:end_date]
+
+    dfn = df.reset_index().melt('Datum')
+    dfn1 = alt.Chart(dfn).mark_line().encode(
+        x = ('Datum:T'),
+        y = ('value:Q'),
+        color = 'variable:N').properties(
+            height = 500,
+            width = 750).interactive()
+
+    graph = st.altair_chart(dfn1) 
+
+    return graph
+
+# Grafiek van Portfolio en Benchmark
+def Graph(data, benchmark, ticker, period):
+    sorted_periode = sorted(period)
+
+    # benchmark['Start Waarde'] = benchmark[f'{ticker} Eind Waarde'].shift(1)
+    # benchmark['Benchmark Dag Rendement'] = ((benchmark[f'{ticker} Eind Waarde'] - benchmark['Start Waarde']) / benchmark['Start Waarde']).round(5)
+    
+    df_port_bench = data.merge(benchmark, on='Datum', how='left')
+    df_port_bench['Benchmark Dag Rendement'].fillna(0)
+    df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
+    df_port_bench['Benchmark Cumulatief Rendement'].fillna(method='ffill', inplace = True)
+    df_base = df_port_bench[['EW Portfolio Cumulatief Rendement', 'Benchmark Cumulatief Rendement']]
+    
+    if len(period) > 1:
+        start = periode[sorted_periode[0]]['start']
+        end = periode[sorted_periode[-1]]['end']
+    else:
+        start = periode[sorted_periode[0]]['start']
+        end = periode[sorted_periode[0]]['end']
+
+    df = df_base.loc[start:end]
 
     dfn = df.reset_index().melt('Datum')
     dfn1 = alt.Chart(dfn).mark_line().encode(
@@ -286,7 +283,6 @@ def ZoekGraph(data, benchmark, ticker, start_date, end_date):
     graph = st.altair_chart(dfn1) 
 
     return graph
-
 # Oude zoekportfolio ontwikkeling functie --backup
 # def ZoekPortfOntwikkeling1(data, start_datum, eind_datum):
 #     sd = start_datum
