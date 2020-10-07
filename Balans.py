@@ -12,10 +12,10 @@ import os
 periode = {
     'Q1':
     {'start':'2020-01-07',
-    'end':'2020-01-14'},
+    'end':'2020-01-08'},
     'Q2':
-    {'start':'2020-02-03',
-    'end':'2020-02-28'},
+    {'start':'2020-01-08',
+    'end':'2020-01-16'},
     'Q3':
     {'start':'2020-02-03',
     'end':'2020-03-31'},
@@ -270,10 +270,11 @@ def Graph(data, benchmark, ticker, period):
     df = df_base.loc[start:end]
 
     dfn = df.reset_index().melt('Datum')
-    dfn1 = alt.Chart(dfn).mark_line().encode(
+    dfn1 = alt.Chart(dfn).mark_circle().encode(
         x = ('Datum:T'),
         y = ('value:Q'),
-        color='variable:N').properties(
+        color='variable:N',
+        tooltip=['Datum:T','value:Q']).properties(
             height=500,
             width=750).interactive()
 
