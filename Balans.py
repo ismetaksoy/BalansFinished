@@ -242,7 +242,8 @@ def ZoekGraph(data, benchmark, ticker, start_date, end_date):
     dfn1 = alt.Chart(dfn).mark_line().encode(
         x = ('Datum:T'),
         y = ('value:Q'),
-        color = 'variable:N').properties(
+        color = 'variable:N',
+        tooltip=['Datum:T','value:Q']).properties(
             height = 500,
             width = 750).interactive()
 
@@ -281,56 +282,10 @@ def Graph(data, benchmark, ticker, period):
     graph = st.altair_chart(dfn1) 
 
     return graph
-# Oude zoekportfolio ontwikkeling functie --backup
-# def ZoekPortfOntwikkeling1(data, start_datum, eind_datum):
-#     sd = start_datum
-#     ed = eind_datum
 
-#     df = data.loc[sd:ed]
-#     portf_startwaarde = df.loc[sd,['Start Waarde']][0]
-#     portf_stortingen = df.loc[sd:ed,['Stortingen']].sum()[0]
-#     portf_deponeringen = df.loc[sd:ed,['Deponeringen']].sum()[0]
-#     portf_onttrekkingen = df.loc[sd:ed,['Onttrekkingen']].sum()[0]
-#     portf_lichtingen = df.loc[sd:ed,['Lichtingen']].sum()[0]
-#     portf_eindwaarde = df.loc[ed,['Eind Waarde']][0]
-#     startcumrendement = df.loc[sd,['SW Portfolio Cumulatief Rendement']][0]
-#     eindcumrendement = df.loc[ed,['EW Portfolio Cumulatief Rendement']][0]
-    
-    
-#     overview = [portf_startwaarde, portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen, 
-#                portf_eindwaarde, startcumrendement, eindcumrendement]
-
-#     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Start Cum Rend', 'Eind Cum Rend'])
-    
-#     df_final['Abs Rendement'] = df_final['Eind Waarde'] - df_final['Start Waarde'] - df_final['Stortingen'] - df_final['Deponeringen'] + df_final['Onttrekkingen'] + df_final['Lichtingen']
-#     #df_final['Rendement'] = (df_final['Abs Rendement'] / df_final['Start Waarde'])
-    
-#     df_final['Cumulatief Rendement'] = (eindcumrendement - startcumrendement) / startcumrendement
-    
-#     return df_final
-
-# @st.cache
-# def GetOverview(data, kwartaals): 
-#     startwaarde, stortingen, deponeringen, onttrekkingen, lichtingen, eindwaarde = [],[],[],[],[],[]
-#     for kwartaal in kwartaals:
-#         startwaarde.append(data.loc[periode[kwartaal]['start'],['Start Waarde']][0])
-#         stortingen.append((data.loc[periode[kwartaal]['start']:periode[kwartaal]['end'],['Stortingen']]).sum()[0])
-#         deponeringen.append((data.loc[periode[kwartaal]['start']:periode[kwartaal]['end'],['Deponeringen']]).sum()[0])
-#         onttrekkingen.append((data.loc[periode[kwartaal]['start']:periode[kwartaal]['end'],['Onttrekkingen']]).sum()[0])
-#         lichtingen.append((data.loc[periode[kwartaal]['start']:periode[kwartaal]['end'],['Lichtingen']]).sum()[0])
-#         eindwaarde.append(data.loc[periode[kwartaal]['end'],['Eind Waarde']][0])
-
-
-
-
-#     overview = list(zip(startwaarde, stortingen, deponeringen, onttrekkingen, lichtingen, eindwaarde))
-    
-#     df = pd.DataFrame(overview, 
-#            columns=["Start Waarde","Stortingen","Deponeringen","Onttrekkingen","Lichtingen","Eind Waarde"], index = kwartaals)
-
-
-#     df['Abs Rendement'] = df['Eind Waarde'] - df['Start Waarde'] - df['Stortingen'] - df['Deponeringen'] + df['Onttrekkingen'] + df['Lichtingen']
-
-#     df['Rendement'] = (df['Eind Waarde'] - df['Start Waarde']) / df['Start Waarde']
-
-#     return df
+# TO DO
+# Maak weekend datums voor benchmark tabel
+# select p.Datum as posrecondatum, substr(i.Datum, 1, 10) as ingdatum
+# from posrecon p
+# left join "INGA.AS" i on p.datum = substr(i.Datum, 1,10)
+# group by posrecondatum;
