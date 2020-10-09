@@ -98,7 +98,7 @@ def GetRendement(x):
     # Concat de 4 dataframes uit de Traderecon query in 1 dataframe en merge deze met de Posrecon dataframe
     traderecon_data = [df_onttrekking, df_stortingen, df_lichtingen, df_deponeringen]
     df_tot_tr = pd.concat(traderecon_data)
-    df_final = df_posrecon.merge(df_tot_tr, on='Datum', how='left')
+    df_final = df_posrecon.merge(df_tot_tr, on='Datum', how='outer') # left vervangen met outer
     
     ### VOEG DE OVERBOEKINGEN AAN DE DATAFRAME MET DE WAARDES PORTEFEUILLE
     traderecon_columns = ['Onttrekkingen', 'Stortingen', 'Lichtingen', 'Deponeringen']
@@ -206,8 +206,8 @@ def ZoekPortfOntwikkeling(data, sd, ed):
     portf_cumrendement = (portf_eindcumrendement - portf_startcumrendement) / portf_startcumrendement
 
 
-    overview = [portf_startwaarde, portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen,
-               portf_eindwaarde,  portf_startcumrendement, portf_eindcumrendement, portf_absrendement, portf_cumrendement]
+    overview = ['{:06.2f}'.format(portf_startwaarde), portf_stortingen, portf_deponeringen, portf_onttrekkingen, portf_lichtingen,
+               '{:06.2f}'.format(portf_eindwaarde),  portf_startcumrendement, portf_eindcumrendement, portf_absrendement, portf_cumrendement]
 
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Start Cum Rend', 'Eind Cum Rend', 
                                                     'Abs Rendement', 'Periode Cum Rendement']) 
