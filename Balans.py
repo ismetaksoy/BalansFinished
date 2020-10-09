@@ -207,7 +207,7 @@ def ZoekPortfOntwikkeling(data, sd, ed):
 
 
     overview = ['{:.2f}'.format(portf_startwaarde), '{:.2f}'.format(portf_stortingen), '{:.2f}'.format(portf_deponeringen), '{:.2f}'.format(portf_onttrekkingen), '{:.2f}'.format(portf_lichtingen),
-               '{:.2f}'.format(portf_eindwaarde),  '{:.2f}'.format(portf_startcumrendement), '{:.2f}'.format(portf_eindcumrendement), '{:.2f}'.format(portf_absrendement), '{:.2f}'.format(portf_cumrendement)]
+               '{:.2f}'.format(portf_eindwaarde),  '{:.2%}'.format(portf_startcumrendement), '{:.2%}'.format(portf_eindcumrendement), '{:.2f}'.format(portf_absrendement), '{:.2%}'.format(portf_cumrendement)]
 
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Start Cum Rend', 'Eind Cum Rend', 
                                                     'Abs Rendement', 'Periode Cum Rendement']) 
@@ -225,7 +225,7 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
     
     df['Abs Rendement'] = '{:.2f}'.format(bench_ew - bench_sw)
     
-    df['Rendement'] = '{:.2f}'.format((bench_ew - bench_sw) / bench_sw)
+    df['Rendement'] = '{:.2%}'.format((bench_ew - bench_sw) / bench_sw)
     
     return df
 
