@@ -157,14 +157,14 @@ def getBenchmarkData(bench):
     df_benchmark = ticker.history(period = '10y')
     
     df_benchmark.reset_index(inplace = True)
-    df_benchmark.rename(columns = {'Date':'Datum', 'Close': 'Eind Waarde'}, inplace = True)
-    df_benchmark['Start Waarde'] = df_benchmark['Eind Waarde'].shift(1)
-    df_benchmark['Benchmark Dag Rendement'] = ((df_benchmark['Eind Waarde'] - df_benchmark['Start Waarde']) / df_benchmark['Start Waarde']).round(5)
+    df_benchmark.rename(columns = {'Date':'Datum', 'Close': 'Benchmark Eind Waarde'}, inplace = True)
+    df_benchmark['Start Waarde'] = df_benchmark['Benchmark Eind Waarde'].shift(1)
+    df_benchmark['Benchmark Dag Rendement'] = ((df_benchmark['Benchmark Eind Waarde'] - df_benchmark['Start Waarde']) / df_benchmark['Start Waarde']).round(5)
     df_benchmark['Benchmark Dag Rendement'] = df_benchmark['Benchmark Dag Rendement'].fillna(0)
     df_benchmark.to_sql(f'{bench}', if_exists = 'replace', con = conn)
 
     df = pd.read_sql(f'''
-        SELECT substr(Datum, 1, 10) as "Datum", "Start Waarde", "Eind Waarde", "Benchmark Dag Rendement" FROM "{bench}"
+        SELECT substr(Datum, 1, 10) as "Datum", "Start Waarde", "Benchmark Eind Waarde", "Benchmark Dag Rendement" FROM "{bench}"
     ''', con = engine).set_index("Datum")
     return df
 
@@ -206,8 +206,7 @@ def ZoekPortfOntwikkeling(data, sd, ed):
     portf_cumrendement = (portf_eindcumrendement - portf_startcumrendement) / portf_startcumrendement
 
 
-    overview = ['{:.2f}'.format(portf_startwaarde), '{:.2f}'.format(portf_stortingen), '{:.2f}'.format(portf_deponeringen), '{:.2f}'.format(portf_onttrekkingen), '{:.2f}'.format(portf_lichtingen),
-               '{:.2f}'.format(portf_eindwaarde),  '{:.2%}'.format(portf_startcumrendement), '{:.2%}'.format(portf_eindcumrendement), '{:.2f}'.format(portf_absrendement), '{:.2%}'.format(portf_cumrendement)]
+    overview = ['{:.2f}'.format(portf_startwaarde), '{:.2f}'.format(portf_stortingen), '{:.2f}'.format(portf_deponeringen), '{:.2f}'.format(portf_onttrekkingen), '{:.2f}'.format(portf_lichtingen),'{:.2f}'.format(portf_eindwaarde),  '{:.2%}'.format(portf_startcumrendement), '{:.2%}'.format(portf_eindcumrendement), '{:.2f}'.format(portf_absrendement), '{:.2%}'.format(portf_cumrendement)]
 
     df_final = pd.DataFrame([overview], columns = ['Start Waarde', 'Stortingen', 'Deponeringen', 'Onttrekkingen', 'Lichtingen', 'Eind Waarde', 'Start Cum Rend', 'Eind Cum Rend', 
                                                     'Abs Rendement', 'Periode Cum Rendement']) 
@@ -216,6 +215,7 @@ def ZoekPortfOntwikkeling(data, sd, ed):
 
 @st.cache
 def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
+
     new_benchmark_df = data[start_date:end_date]
     bench_sw = new_benchmark_df.loc[start_date][0]
     bench_ew = new_benchmark_df.loc[end_date][0]
@@ -230,7 +230,7 @@ def ZoekBenchmarkOntwikkeling(data, start_date, end_date):
     return df
 
 
-def ZoekGraph(data, benchmark, ticker, start_date, end_date):
+def ZoekGraph(data, benchmark, start_date, end_date):
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
     df_port_bench['Benchmark Dag Rendement'].fillna(0)
     df_port_bench['Benchmark Cumulatief Rendement'] = (1 + df_port_bench['Benchmark Dag Rendement']).cumprod()
@@ -253,7 +253,7 @@ def ZoekGraph(data, benchmark, ticker, start_date, end_date):
     return graph
 
 # Grafiek van Portfolio en Benchmark
-def Graph(data, benchmark, ticker, period):
+def Graph(data, benchmark, period):
     sorted_periode = sorted(period)
     
     df_port_bench = data.merge(benchmark, on='Datum', how='left')
@@ -272,7 +272,7 @@ def Graph(data, benchmark, ticker, period):
     df = df_base.loc[start:end]
 
     dfn = df.reset_index().melt('Datum')
-    dfn1 = alt.Chart(dfn).mark_circle().encode(
+    dfn1 = alt.Chart(dfn).mark_line().encode(
         x = ('Datum:T'),
         y = ('value:Q'),
         color='variable:N',
