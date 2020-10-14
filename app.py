@@ -37,29 +37,30 @@ if st.sidebar.button('Show Data'):
 	end_d = end_date.strftime("%Y-%m-%d")
 	
 	# # Het systeem kijkt in de database wat de start en eind datums zijn voor de rekeningnummer en geeft deze als output
-	database_start_date_posrecon = pd.read_sql(f'''select datum from posrecon where RekNr = "{reknr}" order by datum asc limit 1;''', con = engine)
-	database_end_date_posrecon = pd.read_sql(f'''select datum from posrecon where RekNr = "{reknr}" order by datum desc limit 1;''', con = engine)
+	database_start_date = pd.read_sql(f'''
+		select datum from posrecon where reknr = "{reknr}"
+		union
+		select datum from traderecon where reknr = "{reknr}"
+		order by datum asc limit 1;
+
+		''', con = engine)
+	database_end_date = pd.read_sql(f'''
+		select datum from posrecon where reknr = "{reknr}"
+		union
+		select datum from traderecon where reknr = "{reknr}"
+		order by datum desc limit 1;''', con = engine)
 	
-	database_start_date_traderecon = pd.read_sql(f'''select datum from traderecon where RekNr = "{reknr}" order by datum asc limit 1;''', con = engine)
-	database_end_date_traderecon = pd.read_sql(f'''select datum from traderecon where RekNr = "{reknr}" order by datum desc limit 1;''', con = engine)
+	new_start_date = pd.to_datetime(database_start_date['Datum'][0]).strftime("%Y-%m-%d")
+	new_end_date = pd.to_datetime(database_end_date['Datum'][0]).strftime("%Y-%m-%d")
 
-	new_start_date_posrecon = pd.to_datetime(database_start_date_posrecon['Datum'][0]).strftime("%Y-%m-%d")
-	new_end_date_posrecon = pd.to_datetime(database_end_date_posrecon['Datum'][0]).strftime("%Y-%m-%d")
-
-	new_start_date_traderecon = pd.to_datetime(database_start_date_traderecon['Datum'][0]).strftime("%Y-%m-%d")
-	new_end_date_traderecon= pd.to_datetime(database_end_date_traderecon['Datum'][0]).strftime("%Y-%m-%d")	
 
 	# # Hier vergelijken we gekozen start/eind datum en de start/eind datum in de database. Als de gekozen start/eind datum kleiner/groter is dan wat er in de database staat zal deze de nieuwe
 	# # start/eind datum worden
-	startdates = [new_start_date_posrecon, new_start_date_traderecon]
-	enddates = [new_end_date_posrecon, new_end_date_traderecon]
-	sorted_start_date = sorted(startdates)[0]
-	sorted_end_date = sorted(enddates)[-1]
 
-	if start_d < sorted_start_date:
-		start_d = sorted_start_date
-	if end_d > sorted_end_date:
-		end_d = sorted_end_date
+	if start_d < new_start_date:
+		start_d = new_start_date
+	if end_d > new_end_date:
+		end_d = new_end_date
 
 	if not periode_keuze:
 
